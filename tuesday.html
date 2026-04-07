@@ -114,6 +114,48 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s;
     }
     .reset-btn:hover { transform: scale(1.05); box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
+
+    /* --- action animations --- */
+    @keyframes pop-check {
+      0%   { transform: scale(1); }
+      30%  { transform: scale(0.9); }
+      60%  { transform: scale(1.08) translateY(-5px); }
+      80%  { transform: scale(0.98) translateY(-1px); }
+      100% { transform: scale(1); }
+    }
+    @keyframes shake-uncheck {
+      0%,100% { transform: translateX(0); }
+      20%  { transform: translateX(-7px); }
+      40%  { transform: translateX(7px); }
+      60%  { transform: translateX(-4px); }
+      80%  { transform: translateX(4px); }
+    }
+    @keyframes icon-celebrate {
+      0%   { transform: scale(1) rotate(0deg); }
+      25%  { transform: scale(1.5) rotate(-18deg); }
+      50%  { transform: scale(1.4) rotate(15deg); }
+      75%  { transform: scale(1.2) rotate(-8deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+    @keyframes checkbox-pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(77,217,122,0.7); }
+      60%  { box-shadow: 0 0 0 14px rgba(77,217,122,0); }
+      100% { box-shadow: 0 0 0 0 rgba(77,217,122,0); }
+    }
+    .task-card .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.55);
+      width: 100px; height: 100px;
+      transform: scale(0);
+      animation: ripple-out 0.55s linear forwards;
+      pointer-events: none;
+    }
+    @keyframes ripple-out { to { transform: scale(5); opacity: 0; } }
+    .task-card.anim-pop   { animation: pop-check 0.45s cubic-bezier(.34,1.56,.64,1); }
+    .task-card.anim-shake { animation: shake-uncheck 0.38s ease; }
+    .task-icon.anim-celebrate { animation: icon-celebrate 0.55s cubic-bezier(.34,1.56,.64,1); }
+    .checkbox.anim-pulse  { animation: checkbox-pulse 0.6s ease-out; }
   </style>
 </head>
 <body>
@@ -130,7 +172,16 @@
 </div>
 <div class="tasks" id="tasks">
 
-  <div class="task-card c1" data-key="exercises" onclick="toggle(this)">
+  <div class="task-card c1" data-key="teeth-morning" onclick="toggle(this)">
+    <div class="task-icon">🦷</div>
+    <div class="task-text">
+      <div class="task-name">Brush My Teeth ☀️</div>
+      <div class="task-hint">Morning — wake up those teeth!</div>
+    </div>
+    <div class="checkbox"><span class="tick">✓</span></div>
+  </div>
+
+  <div class="task-card c2" data-key="exercises" onclick="toggle(this)">
     <div class="task-icon">🏃</div>
     <div class="task-text">
       <div class="task-name">Repeat Exercises</div>
@@ -166,6 +217,24 @@
     <div class="checkbox"><span class="tick">✓</span></div>
   </div>
 
+  <div class="task-card c1" data-key="idea" onclick="toggle(this)">
+    <div class="task-icon">💡</div>
+    <div class="task-text">
+      <div class="task-name">Think of an Idea</div>
+      <div class="task-hint">Your brain is full of magic!</div>
+    </div>
+    <div class="checkbox"><span class="tick">✓</span></div>
+  </div>
+
+  <div class="task-card c3" data-key="teeth-evening" onclick="toggle(this)">
+    <div class="task-icon">🦷</div>
+    <div class="task-text">
+      <div class="task-name">Brush My Teeth 🌙</div>
+      <div class="task-hint">Evening — sweet dreams, fresh breath!</div>
+    </div>
+    <div class="checkbox"><span class="tick">✓</span></div>
+  </div>
+
 </div>
 <button class="reset-btn" onclick="resetAll()">🔄 Start Fresh</button>
 <div id="celebration">
@@ -192,9 +261,29 @@
     localStorage.setItem(storageKey, JSON.stringify(state));
   }
   function toggle(card) {
+    const wasChecked = card.classList.contains('done');
     card.classList.toggle('done');
-    card.style.transform = 'scale(0.95)';
-    setTimeout(() => card.style.transform = '', 150);
+    const ripple = document.createElement('div');
+    ripple.className = 'ripple';
+    ripple.style.left = (card.offsetWidth / 2 - 50) + 'px';
+    ripple.style.top  = (card.offsetHeight / 2 - 50) + 'px';
+    card.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 560);
+    const icon = card.querySelector('.task-icon');
+    const box  = card.querySelector('.checkbox');
+    if (!wasChecked) {
+      card.classList.add('anim-pop');
+      icon.classList.add('anim-celebrate');
+      box.classList.add('anim-pulse');
+      setTimeout(() => {
+        card.classList.remove('anim-pop');
+        icon.classList.remove('anim-celebrate');
+        box.classList.remove('anim-pulse');
+      }, 600);
+    } else {
+      card.classList.add('anim-shake');
+      setTimeout(() => card.classList.remove('anim-shake'), 400);
+    }
     saveState(); updateProgress();
   }
   function updateProgress() {
